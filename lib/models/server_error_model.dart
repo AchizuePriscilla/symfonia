@@ -1,4 +1,5 @@
 
+
 class ServerErrorModel{
   final int statusCode;
   final dynamic errorMessage;
@@ -10,4 +11,5 @@ class ServerErrorModel{
       required this.errorMessage,
       this.data,
       this.useDialog = false});
+
 }

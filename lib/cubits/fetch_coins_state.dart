@@ -16,7 +16,7 @@ class FetchCoinsError extends FetchCoinsState {
 }
 
 class FetchCoinsLoaded extends FetchCoinsState {
-  final CoinDetails coinDetails;
+  final CoinModel coinModel;
 
-  const FetchCoinsLoaded(this.coinDetails);
+  const FetchCoinsLoaded(this.coinModel);
 }

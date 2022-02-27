@@ -1,10 +1,34 @@
+import 'dart:developer';
+
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:symfonia_task/cubits/fetch_coins_cubit.dart';
+import 'package:symfonia_task/models/coin_model.dart';
 import 'package:symfonia_task/presentation/shared/shared.dart';
+import 'package:symfonia_task/utils/app_utils/locator.dart';
 import 'package:symfonia_task/utils/extensions/size.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
-class HistoryView extends StatelessWidget {
+class HistoryView extends StatefulWidget {
   const HistoryView({Key? key}) : super(key: key);
+
+  @override
+  State<HistoryView> createState() => _HistoryViewState();
+}
+
+class _HistoryViewState extends State<HistoryView> {
+  final FetchCoinsCubit _fetchCoinsCubit = locator.get<FetchCoinsCubit>();
+  late CoinModel coinModel;
+  @override
+  void initState() {
+    WidgetsFlutterBinding.ensureInitialized();
+    super.initState();
+    fetchCoins();
+  }
+
+  fetchCoins() async {
+    await _fetchCoinsCubit.fetchCoins();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -53,13 +77,35 @@ class HistoryView extends StatelessWidget {
           ],
         ),
         builder: (context, size) {
-          return Container(
-            padding: EdgeInsets.symmetric(horizontal: 20.w),
-            child: ListView.builder(
-              itemCount: 2,
-              itemBuilder: ((context, index) {
-                return const CoinDetails();
-              }),
+          return BlocProvider(
+            create: (context) => locator.get<FetchCoinsCubit>(),
+            child: Container(
+              padding: EdgeInsets.symmetric(horizontal: 20.w),
+              child: BlocBuilder<FetchCoinsCubit, FetchCoinsState>(
+                builder: (context, state) {
+                  if (state is FetchCoinsLoaded) {
+                    coinModel = state.coinModel;
+                    return ListView.builder(
+                      itemCount: 2,
+                      itemBuilder: ((context, index) {
+                        return const CoinDetails();
+                      }),
+                    );
+                  }
+
+                  if (state is FetchCoinsError) {
+                    log(state.message);
+                    return Center(
+                      child: Text(
+                        "Sorry something went wrong, please try again",
+                        textAlign: TextAlign.center,
+                        style: TextStyle(color: Palette.black, fontSize: 16.sp),
+                      ),
+                    );
+                  }
+                  return const Center(child: CircularProgressIndicator());
+                },
+              ),
             ),
           );
         });
@@ -124,7 +170,7 @@ class CoinDetails extends StatelessWidget {
           ),
           Expanded(child: Container()),
           Text(
-            '\$79',
+            '\$',
             style: TextStyle(
                 fontSize: 16.sp,
                 color: Palette.red,

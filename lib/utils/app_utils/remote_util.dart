@@ -1,3 +1,4 @@
+import 'dart:developer';
 import 'dart:io';
 
 import 'package:dio/dio.dart';
@@ -39,8 +40,8 @@ class Remote {
     return await dio.get(url);
   }
 
-  static Future<State> makeRequest(
-    Future<Response> future, {
+  Future<State> makeRequest(
+    Future<Response> Function() future, {
     bool isStatusCode = true,
     int statusCodeSuccess = 200,
     required State Function(dynamic data) successResponse,
@@ -67,6 +68,7 @@ class Remote {
             data: e.response?.data),
       );
     } catch (error) {
+      log(error.toString());
       return State<ServerErrorModel>.error(
         const ServerErrorModel(
             statusCode: 400,
@@ -77,15 +79,14 @@ class Remote {
   }
 
   static Future<State> _makeRequest(
-      Future<Response> future,
+      Future<Response> Function() future,
       bool isStatusCode,
       int statusCodeSuccess,
       State Function(dynamic data) successResponse,
       State Function(Response data) errorResponse) async {
-    var req = await future;
-
-    var response = req.data;
-
+    var response = await future();
+    log("making request");
+    log(response.statusCode.toString());
     if (isStatusCode) {
       return _handleResponseBasedOnStatusCode(
           response, statusCodeSuccess, successResponse, errorResponse);
@@ -101,7 +102,9 @@ class Remote {
       State Function(dynamic data) successResponse,
       State Function(Response data) errorResponse) {
     if (response.statusCode == statusCodeSuccess) {
-      return successResponse(response.data);
+      return successResponse(response.data is Map<String, dynamic>
+          ? response.data
+          : {"data": response.data});
     } else {
       return errorResponse(response);
     }
@@ -112,7 +115,9 @@ class Remote {
       State Function(dynamic data) successResponse,
       State Function(Response data) errorResponse) {
     if (response.data['status'] == 'success') {
-      return successResponse(response.data);
+      return successResponse(response.data is Map<String, dynamic>
+          ? response.data
+          : {"data": response.data});
     }
     return errorResponse(response);
   }

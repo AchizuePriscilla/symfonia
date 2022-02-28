@@ -45,6 +45,9 @@ dependencies:
   dartz: ^0.10.0-nullsafety.2
   bloc: ^8.0.2
   flutter_bloc: ^8.0.1
+  pretty_dio_logger:
+    git:
+      url: https://github.com/Space-HQ/pretty_dio_logger.git
 
 
 dev_dependencies:

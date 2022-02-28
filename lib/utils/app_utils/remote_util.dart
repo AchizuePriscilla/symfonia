@@ -1,10 +1,6 @@
-import 'dart:developer';
-import 'dart:io';
-
 import 'package:dio/dio.dart';
+import 'package:pretty_dio_logger/pretty_dio_logger.dart';
 import 'package:symfonia_task/utils/app_utils/locator.dart';
-import '../../models/server_error_model.dart';
-import '../../models/state.dart';
 import 'connectivity_service.dart';
 
 class Remote {
@@ -18,6 +14,17 @@ class Remote {
     );
 
     dio = Dio(options);
+    dio.interceptors.add(
+      PrettyDioLogger(
+        requestHeader: true,
+        requestBody: true,
+        responseBody: true,
+        responseHeader: false,
+        error: true,
+        compact: true,
+        maxWidth: 90,
+      ),
+    );
     dio.interceptors.add(InterceptorsWrapper(onRequest: (
       options,
       handler,
@@ -34,91 +41,5 @@ class Remote {
       }
       handler.next(options);
     }));
-  }
-
-  Future<Response> get(String url) async {
-    return await dio.get(url);
-  }
-
-  Future<State> makeRequest(
-    Future<Response> Function() future, {
-    bool isStatusCode = true,
-    int statusCodeSuccess = 200,
-    required State Function(dynamic data) successResponse,
-    required State Function(Response data) errorResponse,
-    State Function(Response? data)? dioErrorResponse,
-  }) async {
-    try {
-      return await _makeRequest(future, isStatusCode, statusCodeSuccess,
-          successResponse, errorResponse);
-    } on SocketException {
-      return State<ServerErrorModel>.error(
-        const ServerErrorModel(
-            statusCode: 400,
-            errorMessage: "Something went wrong "
-                "please check your internet connection and try again",
-            data: null),
-      );
-    } on DioError catch (e) {
-      return State<ServerErrorModel>.error(
-        ServerErrorModel(
-            statusCode: 400,
-            errorMessage:
-                e.response?.data ?? "Something went wrong please try again",
-            data: e.response?.data),
-      );
-    } catch (error) {
-      log(error.toString());
-      return State<ServerErrorModel>.error(
-        const ServerErrorModel(
-            statusCode: 400,
-            errorMessage: "Something went wrong please try again",
-            data: null),
-      );
-    }
-  }
-
-  static Future<State> _makeRequest(
-      Future<Response> Function() future,
-      bool isStatusCode,
-      int statusCodeSuccess,
-      State Function(dynamic data) successResponse,
-      State Function(Response data) errorResponse) async {
-    var response = await future();
-    log("making request");
-    log(response.statusCode.toString());
-    if (isStatusCode) {
-      return _handleResponseBasedOnStatusCode(
-          response, statusCodeSuccess, successResponse, errorResponse);
-    } else {
-      return _handleResponseBasedOnDataReturned(
-          response, successResponse, errorResponse);
-    }
-  }
-
-  static State _handleResponseBasedOnStatusCode(
-      Response response,
-      int statusCodeSuccess,
-      State Function(dynamic data) successResponse,
-      State Function(Response data) errorResponse) {
-    if (response.statusCode == statusCodeSuccess) {
-      return successResponse(response.data is Map<String, dynamic>
-          ? response.data
-          : {"data": response.data});
-    } else {
-      return errorResponse(response);
-    }
-  }
-
-  static State _handleResponseBasedOnDataReturned(
-      Response response,
-      State Function(dynamic data) successResponse,
-      State Function(Response data) errorResponse) {
-    if (response.data['status'] == 'success') {
-      return successResponse(response.data is Map<String, dynamic>
-          ? response.data
-          : {"data": response.data});
-    }
-    return errorResponse(response);
   }
 }

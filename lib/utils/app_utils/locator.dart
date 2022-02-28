@@ -1,6 +1,6 @@
 import 'package:get_it/get_it.dart';
-import 'package:symfonia_task/cubits/fetch_coins_cubit.dart';
 import 'package:symfonia_task/services/fetch_coins_services.dart';
+import '../../presentation/cubits/fetch_coins_cubit.dart';
 import 'connectivity_service.dart';
 
 GetIt locator = GetIt.instance;

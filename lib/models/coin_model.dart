@@ -3,6 +3,18 @@
 //     final coinModel = coinModelFromMap(jsonString);
 import 'dart:convert';
 
+class CoinModelList {
+  CoinModelList({
+    required this.coins,
+  });
+
+  final List<CoinModel> coins;
+  factory CoinModelList.fromMap(Map<String, dynamic> json) => CoinModelList(
+        coins: List<CoinModel>.from(
+            (json[''] ?? []).map((x) => CoinModelList.fromMap(x))).toList(),
+      );
+}
+
 class CoinModel {
   CoinModel({
     required this.id,
@@ -60,7 +72,8 @@ class CoinModel {
   final dynamic roi;
   final DateTime? lastUpdated;
 
-  factory CoinModel.fromJson(String str) => CoinModel.fromMap(json.decode(str));
+  factory CoinModel.fromJson(Map<String, dynamic> json) =>
+      CoinModel.fromMap(json);
 
   String toJson() => json.encode(toMap());
 

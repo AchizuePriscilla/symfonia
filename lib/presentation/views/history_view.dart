@@ -2,12 +2,13 @@ import 'dart:developer';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:symfonia_task/cubits/fetch_coins_cubit.dart';
 import 'package:symfonia_task/models/coin_model.dart';
 import 'package:symfonia_task/presentation/shared/shared.dart';
 import 'package:symfonia_task/utils/app_utils/locator.dart';
 import 'package:symfonia_task/utils/extensions/size.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+
+import '../cubits/fetch_coins_cubit.dart';
 
 class HistoryView extends StatefulWidget {
   const HistoryView({Key? key}) : super(key: key);
@@ -18,7 +19,6 @@ class HistoryView extends StatefulWidget {
 
 class _HistoryViewState extends State<HistoryView> {
   final FetchCoinsCubit _fetchCoinsCubit = locator.get<FetchCoinsCubit>();
-  late CoinModel coinModel;
   @override
   void initState() {
     WidgetsFlutterBinding.ensureInitialized();
@@ -83,12 +83,19 @@ class _HistoryViewState extends State<HistoryView> {
               padding: EdgeInsets.symmetric(horizontal: 20.w),
               child: BlocBuilder<FetchCoinsCubit, FetchCoinsState>(
                 builder: (context, state) {
+                  if (state is FetchCoinsLoading) {
+                    return const Center(child: CircularProgressIndicator());
+                  }
                   if (state is FetchCoinsLoaded) {
-                    coinModel = state.coinModel;
+                    var coinModel = state.coinModelList;
+                    log("Coin model: $coinModel");
                     return ListView.builder(
                       itemCount: 2,
                       itemBuilder: ((context, index) {
-                        return const CoinDetails();
+                        log("Id: ${coinModel[index].id!}");
+                        return CoinDetails(
+                          coinModel: coinModel[index],
+                        );
                       }),
                     );
                   }
@@ -103,7 +110,10 @@ class _HistoryViewState extends State<HistoryView> {
                       ),
                     );
                   }
-                  return const Center(child: CircularProgressIndicator());
+                  return Center(
+                      child: Container(
+                    color: Colors.red,
+                  ));
                 },
               ),
             ),
@@ -113,7 +123,9 @@ class _HistoryViewState extends State<HistoryView> {
 }
 
 class CoinDetails extends StatelessWidget {
+  final CoinModel coinModel;
   const CoinDetails({
+    required this.coinModel,
     Key? key,
   }) : super(key: key);
 
@@ -150,7 +162,7 @@ class CoinDetails extends StatelessWidget {
                 flex: 2,
               ),
               Text(
-                'Bitcoin',
+                coinModel.id!,
                 style: TextStyle(
                     fontSize: 16.sp,
                     color: Palette.black,

@@ -305,6 +305,15 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "2.1.2"
+  pretty_dio_logger:
+    dependency: "direct main"
+    description:
+      path: "."
+      ref: HEAD
+      resolved-ref: b2615f28966c2bc8fe339742e2d26ed079a16d6f
+      url: "https://github.com/Space-HQ/pretty_dio_logger.git"
+    source: git
+    version: "1.2.0-beta-1"
   process:
     dependency: transitive
     description:

@@ -15,9 +15,11 @@ class FetchCoinsCubit extends Cubit<FetchCoinsState> {
     var res = await fetchServices.fetchCoins();
     if (res.isNotEmpty) {
       emit(FetchCoinsLoaded(res));
+      FetchCoinsCubit(fetchServices).close();
       return res;
     } else {
       emit(const FetchCoinsError("Error fetching coins"));
+      FetchCoinsCubit(fetchServices).close();
     }
     return [];
   }

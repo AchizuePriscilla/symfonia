@@ -15,6 +15,6 @@ Future<void> setupLocator({String baseApi = ''}) async {
     () => FetchCoinsService(baseApi),
   );
 //cubits
-  locator.registerSingleton<FetchCoinsCubit>(
-      FetchCoinsCubit(locator.get<FetchCoinsService>()));
+  locator.registerLazySingleton<FetchCoinsCubit>(
+      () => FetchCoinsCubit(locator.get<FetchCoinsService>()));
 }

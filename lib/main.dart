@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:symfonia_task/presentation/shared/palette.dart';
-import 'package:symfonia_task/presentation/views/history_view.dart';
+import 'package:symfonia_task/presentation/views/home_view.dart';
 
 import 'utils/app_utils/locator.dart';
 
@@ -24,7 +24,11 @@ class MyApp extends StatelessWidget {
             scaffoldBackgroundColor: Palette.offWhite),
         builder: (context, widget) => ScreenUtilInit(
               designSize: const Size(360, 630),
-              builder: () => const HistoryView(),
+              builder: () => Overlay(initialEntries: [
+                OverlayEntry(builder: (context) {
+                  return const HomeView();
+                })
+              ]),
             ));
   }
 }

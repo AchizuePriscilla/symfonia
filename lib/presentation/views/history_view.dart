@@ -18,17 +18,6 @@ class HistoryView extends StatefulWidget {
 }
 
 class _HistoryViewState extends State<HistoryView> {
-  final FetchCoinsCubit _fetchCoinsCubit = locator.get<FetchCoinsCubit>();
-  @override
-  void initState() {
-    WidgetsFlutterBinding.ensureInitialized();
-    super.initState();
-    fetchCoins();
-  }
-
-  fetchCoins() async {
-    await _fetchCoinsCubit.fetchCoins();
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -81,40 +70,41 @@ class _HistoryViewState extends State<HistoryView> {
             create: (context) => locator.get<FetchCoinsCubit>(),
             child: Container(
               padding: EdgeInsets.symmetric(horizontal: 20.w),
-              child: BlocBuilder<FetchCoinsCubit, FetchCoinsState>(
-                builder: (context, state) {
-                  if (state is FetchCoinsLoading) {
-                    return const Center(child: CircularProgressIndicator());
-                  }
-                  if (state is FetchCoinsLoaded) {
-                    var coinModel = state.coinModelList;
-                    log("Coin model: $coinModel");
-                    return ListView.builder(
-                      itemCount: 2,
-                      itemBuilder: ((context, index) {
-                        log("Id: ${coinModel[index].id!}");
-                        return CoinDetails(
-                          coinModel: coinModel[index],
-                        );
-                      }),
-                    );
-                  }
+              child: SizedBox(
+                child: BlocBuilder<FetchCoinsCubit, FetchCoinsState>(
+                  builder: (context, state) {
+                    if (state is FetchCoinsLoading) {
+                      return const Center(child: CircularProgressIndicator());
+                    }
+                    if (state is FetchCoinsLoaded) {
+                      var coinModel = state.coinModelList;
+                      return ListView.builder(
+                        itemCount: coinModel.length,
+                        itemBuilder: ((context, index) {
+                          return CoinDetails(
+                            coinModel: coinModel[index],
+                          );
+                        }),
+                      );
+                    }
 
-                  if (state is FetchCoinsError) {
-                    log(state.message);
+                    if (state is FetchCoinsError) {
+                      log(state.message);
+                      return Center(
+                        child: Text(
+                          "Sorry something went wrong, please try again",
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                              color: Palette.black, fontSize: 16.sp),
+                        ),
+                      );
+                    }
                     return Center(
-                      child: Text(
-                        "Sorry something went wrong, please try again",
-                        textAlign: TextAlign.center,
-                        style: TextStyle(color: Palette.black, fontSize: 16.sp),
-                      ),
-                    );
-                  }
-                  return Center(
-                      child: Container(
-                    color: Colors.red,
-                  ));
-                },
+                        child: Container(
+                      color: Colors.red,
+                    ));
+                  },
+                ),
               ),
             ),
           );
@@ -131,6 +121,9 @@ class CoinDetails extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    String priceChange24HR = coinModel.priceChange24H!.toString();
+    String formatted24HRPriceChange =
+        double.parse(priceChange24HR).toStringAsFixed(2).substring(1);
     return Container(
       margin: EdgeInsets.symmetric(vertical: 10.h),
       child: Row(
@@ -141,6 +134,10 @@ class CoinDetails extends StatelessWidget {
             width: 50.h,
             decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(10), color: Palette.white),
+            child: Padding(
+              padding: const EdgeInsets.all(18.0),
+              child: Image.network(coinModel.image!),
+            ),
           ),
           const CustomSpacer(
             flex: 4,
@@ -151,8 +148,11 @@ class CoinDetails extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             mainAxisSize: MainAxisSize.max,
             children: [
+              const CustomSpacer(
+                flex: 1,
+              ),
               Text(
-                'Vol:',
+                'Vol: ${coinModel.totalVolume}',
                 style: TextStyle(
                     fontSize: 13.sp,
                     color: Palette.grey,
@@ -162,7 +162,7 @@ class CoinDetails extends StatelessWidget {
                 flex: 2,
               ),
               Text(
-                coinModel.id!,
+                coinModel.name!,
                 style: TextStyle(
                     fontSize: 16.sp,
                     color: Palette.black,
@@ -172,20 +172,27 @@ class CoinDetails extends StatelessWidget {
                 flex: 2,
               ),
               Text(
-                'ATH:',
+                'Price: \$${coinModel.currentPrice}',
                 style: TextStyle(
                     fontSize: 13.sp,
                     color: Palette.grey,
                     fontWeight: FontWeight.w400),
-              )
+              ),
+              const CustomSpacer(
+                flex: 1,
+              ),
             ],
           ),
           Expanded(child: Container()),
           Text(
-            '\$',
+            coinModel.priceChange24H!.isNegative
+                ? '-\$$formatted24HRPriceChange'
+                : '+\$${double.parse(priceChange24HR).toStringAsFixed(2)}',
             style: TextStyle(
                 fontSize: 16.sp,
-                color: Palette.red,
+                color: coinModel.priceChange24H!.isNegative
+                    ? Palette.red
+                    : Palette.green,
                 fontWeight: FontWeight.w600),
           )
         ],
